@@ -22,7 +22,7 @@ for i in $(seq 1 $AGENT_COUNT); do
     --url "$DEVOPS_URL" \
     --auth pat \
     --token "$PAT_TOKEN" \
-    --pool "$AGENT_POOL" \ 
+    --pool "$AGENT_POOL" \
     --agent "$AGENT_NAME" \
     --acceptTeeEula
 
