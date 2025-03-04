@@ -20,7 +20,7 @@ fi
 
 
 # Stažení agenta
-curl -L https://vstsagentpackage.azureedge.net/agent/4.251.0/vsts-agent-linux-x64-4.251.0.tar.gz -o agent.tar.gz
+curl -L https://vstsagentpackage.azureedge.net/agent/4.251.0/vsts-agent-linux-x64-4.251.0.tar.gz -o /tmp/agent.tar.gz
 
 # Instalace a konfigurace více agentů
 for i in $(seq 1 $AGENT_COUNT); do
@@ -50,4 +50,4 @@ for i in $(seq 1 $AGENT_COUNT); do
 done
 
 # Úklid
-sudo rm agent.tar.gz
+sudo rm /tmp/agent.tar.gz
