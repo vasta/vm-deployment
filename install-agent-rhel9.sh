@@ -5,8 +5,8 @@ VM_NAME=$3
 AGENT_COUNT=$4
 AGENT_POOL=$5
 # Instalace závislostí pro RHEL 9
-sudo dnf update -y
-sudo dnf install -y curl unzip libicu
+#sudo dnf update -y
+#sudo dnf install -y curl unzip libicu
 
 # Stažení agenta
 curl -L https://vstsagentpackage.azureedge.net/agent/4.251.0/vsts-agent-linux-x64-4.251.0.tar.gz -o agent.tar.gz
