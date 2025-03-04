@@ -7,8 +7,8 @@ AGENT_POOL=$5
 AGENT_USER="azagent"
 
 # Instalace závislostí pro RHEL 9
-sudo dnf update -y
-sudo dnf install -y curl unzip libicu
+#sudo dnf update -y
+#sudo dnf install -y curl unzip libicu
 
 # Vytvoření uživatele azagent, pokud ještě neexistuje
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
