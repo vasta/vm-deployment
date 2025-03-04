@@ -4,7 +4,6 @@ PAT_TOKEN=$2
 VM_NAME=$3
 AGENT_COUNT=$4
 AGENT_POOL=$5
-
 # Instalace závislostí pro RHEL 9
 sudo dnf update -y
 sudo dnf install -y curl unzip libicu
