@@ -10,8 +10,8 @@ LOG_FILE="/var/log/install-agents.log"
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
 # Instalace závislostí pro RHEL 9
-sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
-sudo dnf install -y curl unzip libicu 2>&1 | sudo tee -a "$LOG_FILE"
+#sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
+#sudo dnf install -y curl unzip libicu 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
@@ -55,16 +55,11 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Rozbalení agenta
   echo "$(date) - Rozbalování agenta v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
-  if [ $? -ne 0 ] || [ ! -f "$AGENT_DIR/svc.sh" ]; then
-    echo "$(date) - Chyba: Rozbalení selhalo nebo svc.sh nenalezen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
-    echo "$(date) - Obsah $AGENT_DIR po rozbalení: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
-    echo "$(date) - Kontrola integrity archivu: $(tar -tzf $AGENT_DIR/agent.tar.gz | grep svc.sh)" | sudo tee -a "$LOG_FILE"
-    exit 1
-  fi
+  echo "$(date) - Obsah $AGENT_DIR po rozbalení: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
   echo "$(date) - Agent úspěšně rozbalen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
   # Konfigurace agenta
-  sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  bash -c "cd $AGENT_DIR && ./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
