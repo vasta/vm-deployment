@@ -59,15 +59,16 @@ for i in $(seq 1 $AGENT_COUNT); do
   echo "$(date) - Agent úspěšně rozbalen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
   # Konfigurace agenta
+  cd $AGENT_DIR
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
   #sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
-  bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  bash -c "./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
     --pool '$AGENT_POOL' \
     --agent '$AGENT_NAME' \
-    --acceptTeeEula"
+    --acceptTeeEula" 2>&1 | sudo tee -a "$LOG_FILE"
 
   # Instalace a spuštění služby
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
