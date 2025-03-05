@@ -24,10 +24,11 @@ fi
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
 curl -L https://vstsagentpackage.azureedge.net/agent/3.220.0/vsts-agent-linux-x64-3.220.0.tar.gz -o /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
-if [ $? -ne 0 ]; then
-  echo "$(date) - Chyba při stahování agenta" | sudo tee -a "$LOG_FILE"
+if [ $? -ne 0 ] || [ ! -f "/tmp/agent.tar.gz" ]; then
+  echo "$(date) - Chyba: Stažení agenta selhalo nebo soubor nenalezen" | sudo tee -a "$LOG_FILE"
   exit 1
 fi
+echo "$(date) - Agent úspěšně stažen: $(ls -l /tmp/agent.tar.gz)" | sudo tee -a "$LOG_FILE"
 
 # Instalace a konfigurace více agentů
 for i in $(seq 1 $AGENT_COUNT); do
@@ -39,13 +40,24 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Vytvoření adresáře a nastavení vlastníka
   sudo mkdir -p "$AGENT_DIR" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo chown "$AGENT_USER:$AGENT_USER" "$AGENT_DIR" 2>&1 | sudo tee -a "$LOG_FILE"
+  echo "$(date) - Adresář $AGENT_DIR vytvořen a nastaven pro $AGENT_USER" | sudo tee -a "$LOG_FILE"
 
   # Kopie a rozbalení agenta
-  sudo -u "$AGENT_USER" bash -c "cd $AGENT_DIR && cp /tmp/agent.tar.gz . && tar -xzf agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
-  if [ ! -f "$AGENT_DIR/svc.sh" ]; then
-    echo "$(date) - Chyba: svc.sh nenalezen v $AGENT_DIR po rozbalení" | sudo tee -a "$LOG_FILE"
+  echo "$(date) - Kopírování agenta do $AGENT_DIR" | sudo tee -a "$LOG_FILE"
+  sudo -u "$AGENT_USER" bash -c "cp /tmp/agent.tar.gz $AGENT_DIR/" 2>&1 | sudo tee -a "$LOG_FILE"
+  if [ ! -f "$AGENT_DIR/agent.tar.gz" ]; then
+    echo "$(date) - Chyba: agent.tar.gz nebyl zkopírován do $AGENT_DIR" | sudo tee -a "$LOG_FILE"
     exit 1
   fi
+
+  echo "$(date) - Rozbalování agenta v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
+  sudo -u "$AGENT_USER" bash -c "cd $AGENT_DIR && tar -xzf agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
+  if [ $? -ne 0 ] || [ ! -f "$AGENT_DIR/svc.sh" ]; then
+    echo "$(date) - Chyba: Rozbalení selhalo nebo svc.sh nenalezen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
+    echo "$(date) - Obsah $AGENT_DIR: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
+    exit 1
+  fi
+  echo "$(date) - Agent úspěšně rozbalen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
   # Konfigurace agenta
   sudo -u "$AGENT_USER" bash -c "cd $AGENT_DIR && ./config.sh --unattended \
