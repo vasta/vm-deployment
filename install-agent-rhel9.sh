@@ -9,7 +9,13 @@ LOG_FILE="/var/log/install-agents.log"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
-# Instalace závislostí pro RHEL 9
+# Vytvoření uživatele azagent, pokud ještě neexistuje
+if ! id "azagent" >/dev/null 2>&1; then
+  echo "$(date) - Vytvářím uživatele azagent" | sudo tee -a "$LOG_FILE"
+  sudo useradd -m -s /bin/bash azagent 2>&1 | sudo tee -a "$LOG_FILE"
+fi
+
+# Instalace závislostí pro RHEL 9 (nechávám zakomentované, pokud je potřeba, odkomentujte)
 #sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
 #sudo dnf install -y curl unzip libicu 2>&1 | sudo tee -a "$LOG_FILE"
 
@@ -32,8 +38,9 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   echo "$(date) - Instalace agenta $AGENT_NAME do $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
-  # Vytvoření adresáře
+  # Vytvoření adresáře a nastavení vlastníka na azagent
   sudo mkdir -p "$AGENT_DIR" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo chown -R azagent:azagent "$AGENT_DIR" 2>&1 | sudo tee -a "$LOG_FILE"
   echo "$(date) - Adresář $AGENT_DIR vytvořen: $(ls -ld $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
 
   # Kopie agenta
@@ -54,25 +61,27 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   # Rozbalení agenta
   echo "$(date) - Rozbalování agenta v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo -u azagent bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
   echo "$(date) - Obsah $AGENT_DIR po rozbalení: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
   echo "$(date) - Agent úspěšně rozbalen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
-  # Konfigurace agenta
-  cd $AGENT_DIR
+  # Konfigurace agenta pod uživatelem azagent
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  #sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
-  bash -c "./config.sh --unattended \
+  sudo -u azagent bash -c "cd $AGENT_DIR && ./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
     --pool '$AGENT_POOL' \
     --agent '$AGENT_NAME' \
     --acceptTeeEula" 2>&1 | sudo tee -a "$LOG_FILE"
+  if [ $? -ne 0 ]; then
+    echo "$(date) - Chyba: Konfigurace agenta $AGENT_NAME selhala" | sudo tee -a "$LOG_FILE"
+    exit 1
+  fi
 
-  # Instalace a spuštění služby
+  # Instalace a spuštění služby pod uživatelem azagent
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./svc.sh install" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo bash -c "cd $AGENT_DIR && ./svc.sh install azagent" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
 done
 
