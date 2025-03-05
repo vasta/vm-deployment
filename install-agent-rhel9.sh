@@ -60,13 +60,14 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   # Konfigurace agenta
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  #sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  bash -c "cd $AGENT_DIR && ./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
     --pool '$AGENT_POOL' \
     --agent '$AGENT_NAME' \
-    --acceptTeeEula" 2>&1 | sudo tee -a "$LOG_FILE"
+    --acceptTeeEula"
 
   # Instalace a spuštění služby
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
