@@ -60,7 +60,7 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   # Konfigurace agenta
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  sudo bash -c "cd $AGENT_DIR && ./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
