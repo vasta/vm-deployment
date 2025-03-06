@@ -42,8 +42,9 @@ sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 sudo rm -rf /etc/systemd/system/vsts.agent.vzp* 2>&1 | sudo tee -a "$LOG_FILE"
 sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
 
-# Získání POOL_ID podle názvu poolu
+# Získání POOL_ID podle názvu poolu a všech agentů v tomto poolu
 POOL_ID=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
+AGENTS=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
 # Mazání všech agentů v daném poolu pro dané VM
 if [[ -n "$AGENTS" ]]; then
     echo "Mažu agenty v poolu '$AGENT_POOL', kteří obsahují '${VM_NAME}-agent' v názvu..."
