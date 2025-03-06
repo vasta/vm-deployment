@@ -7,6 +7,7 @@ AGENT_POOL=$5
 AGENT_USER="azagent"
 BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
 LOG_FILE="/var/log/install-agents.log"
+API_VERSION="7.1"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
