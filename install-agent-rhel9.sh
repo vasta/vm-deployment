@@ -2,7 +2,7 @@
 DEVOPS_URL=$1
 PAT_TOKEN=$2
 VM_NAME=$3
-AGENT_COUNT=$4
+AGENT_COUNT=$4  
 AGENT_POOL=$5
 AGENT_USER="azagent"
 BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
@@ -34,9 +34,45 @@ echo "$(date) - Agent úspěšně stažen: $(ls -l /tmp/agent.tar.gz)" | sudo te
 # Zajistit, že soubor je čitelný
 sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 
+
+
+
 # Čištění předchozí konfigurace
 sudo rm -rf /etc/systemd/system/vsts.agent.vzp* 2>&1 | sudo tee -a "$LOG_FILE"
 sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
+
+# Získání POOL_ID podle názvu poolu
+echo "Hledám POOL_ID pro pool s názvem: $AGENT_POOL..."
+POOL_ID=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
+
+# Kontrola, zda bylo nalezeno POOL_ID
+if [[ -z "$POOL_ID" ]]; then
+    echo "Chyba: Agent pool '$AGENT_POOL' neexistuje!"
+fi
+
+echo "Nalezeno POOL_ID: $POOL_ID"
+
+# Získání seznamu agentů v daném poolu
+echo "Získávám seznam agentů v poolu $AGENT_POOL..."
+AGENTS=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
+
+
+# Mazání všech agentů v daném poolu
+if [[ -n "$AGENTS" ]]; then
+    echo "Mažu všechny agenty v poolu '$AGENT_POOL'..."
+    for AGENT_ID in $AGENTS; do
+        echo "Mazání agenta ID: $AGENT_ID..."
+        curl -u :$PAT_TOKEN -X DELETE -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
+        echo "Agent ID $AGENT_ID byl smazán."
+    done
+else
+    echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat."
+fi
+
+
+
+
+
 
 # Instalace a konfigurace více agentů
 for i in $(seq 1 $AGENT_COUNT); do
