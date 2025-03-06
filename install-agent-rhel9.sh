@@ -1,5 +1,5 @@
 #!/bin/bash
-DEVOPS_URL=$1
+DEVOPS_ORG=$1
 PAT_TOKEN=$2
 VM_NAME=$3
 AGENT_COUNT=$4  
@@ -43,16 +43,16 @@ sudo rm -rf /etc/systemd/system/vsts.agent.vzp* 2>&1 | sudo tee -a "$LOG_FILE"
 sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Získání POOL_ID podle názvu poolu a všech agentů v tomto poolu
-POOL_ID=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
-AGENTS=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
+POOL_ID=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
+AGENTS=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
 # Mazání všech agentů v daném poolu pro dané VM
 if [[ -n "$AGENTS" ]]; then
     echo "Mažu agenty v poolu '$AGENT_POOL', kteří obsahují '${VM_NAME}-agent' v názvu..."
     for AGENT_ID in $AGENTS; do
-        AGENT_NAME=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION" | jq -r '.name')
+        AGENT_NAME=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION" | jq -r '.name')
         if [[ "$AGENT_NAME" == *"${VM_NAME}-agent"* ]]; then
             echo "Mazání agenta '$AGENT_NAME' (ID: $AGENT_ID)..."
-            curl -u :$PAT_TOKEN -X DELETE -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
+            curl -u :$PAT_TOKEN -X DELETE -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
             echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) byl smazán."
         else
             echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) přeskočen (neodpovídá vzoru '${VM_NAME}-agent')."
@@ -103,7 +103,7 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Konfigurace agenta pod uživatelem azagent
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
   sudo -u $AGENT_USER bash -c "cd $AGENT_DIR && ./config.sh --unattended \
-    --url '$DEVOPS_URL' \
+    --url 'https://dev.azure.com/$DEVOPS_ORG' \
     --auth pat \
     --token '$PAT_TOKEN' \
     --pool '$AGENT_POOL' \
