@@ -10,9 +10,11 @@ LOG_FILE="/var/log/install-agents.log"
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
 # Vytvoření uživatele azagent, pokud ještě neexistuje
-if ! id "azagent" >/dev/null 2>&1; then
-  echo "$(date) - Vytvářím uživatele azagent" | sudo tee -a "$LOG_FILE"
-  sudo useradd -m -s /bin/bash azagent 2>&1 | sudo tee -a "$LOG_FILE"
+if ! id "$AGENT_USER" >/dev/null 2>&1; then
+  sudo useradd -m -s /bin/bash "$AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
+  echo "$(date) - Uživatel $AGENT_USER vytvořen" | sudo tee -a "$LOG_FILE"
+else
+  echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
 
 # Instalace závislostí pro RHEL 9 (nechávám zakomentované, pokud je potřeba, odkomentujte)
@@ -33,8 +35,8 @@ sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Instalace a konfigurace více agentů
 for i in $(seq 1 $AGENT_COUNT); do
-  AGENT_NAME="${VM_NAME}-agent${i}"
-  AGENT_DIR="${BASE_DIR}/myagent${i}"
+  AGENT_NAME="${VM_NAME}-agent-0${i}"
+  AGENT_DIR="${BASE_DIR}/myagent0${i}"
 
   echo "$(date) - Instalace agenta $AGENT_NAME do $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
@@ -63,11 +65,10 @@ for i in $(seq 1 $AGENT_COUNT); do
   echo "$(date) - Rozbalování agenta v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
   sudo -u azagent bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
   echo "$(date) - Obsah $AGENT_DIR po rozbalení: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
-  echo "$(date) - Agent úspěšně rozbalen v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
 
   # Konfigurace agenta pod uživatelem azagent
   echo "$(date) - Konfigurace agenta v $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  sudo -u azagent bash -c "cd $AGENT_DIR && ./config.sh --unattended \
+  sudo -u $AGENT_USER bash -c "cd $AGENT_DIR && ./config.sh --unattended \
     --url '$DEVOPS_URL' \
     --auth pat \
     --token '$PAT_TOKEN' \
