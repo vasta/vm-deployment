@@ -4,6 +4,7 @@ PAT_TOKEN=$2
 VM_NAME=$3
 AGENT_COUNT=$4
 AGENT_POOL=$5
+AGENT_USER="azagent"
 BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
 LOG_FILE="/var/log/install-agents.log"
 
@@ -63,7 +64,7 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   # Rozbalení agenta
   echo "$(date) - Rozbalování agenta v $AGENT_DIR" | sudo tee -a "$LOG_FILE"
-  sudo -u azagent bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo -u $AGENT_USER bash -c "cd $AGENT_DIR && tar -xzf $AGENT_DIR/agent.tar.gz" 2>&1 | sudo tee -a "$LOG_FILE"
   echo "$(date) - Obsah $AGENT_DIR po rozbalení: $(ls -l $AGENT_DIR)" | sudo tee -a "$LOG_FILE"
 
   # Konfigurace agenta pod uživatelem azagent
@@ -82,7 +83,7 @@ for i in $(seq 1 $AGENT_COUNT); do
 
   # Instalace a spuštění služby pod uživatelem azagent
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./svc.sh install azagent" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo bash -c "cd $AGENT_DIR && ./svc.sh install $AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
 done
 
