@@ -44,18 +44,21 @@ sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Získání POOL_ID podle názvu poolu
 POOL_ID=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
-# Získání seznamu agentů v daném poolu
-AGENTS=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
-# Mazání všech agentů v daném poolu
+# Mazání všech agentů v daném poolu pro dané VM
 if [[ -n "$AGENTS" ]]; then
-    echo "Mažu všechny agenty v poolu '$AGENT_POOL'..." | sudo tee -a "$LOG_FILE"
+    echo "Mažu agenty v poolu '$AGENT_POOL', kteří obsahují '${VM_NAME}-agent' v názvu..."
     for AGENT_ID in $AGENTS; do
-        echo "Mazání agenta ID: $AGENT_ID..." | sudo tee -a "$LOG_FILE"
-        curl -u :$PAT_TOKEN -X DELETE -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
-        echo "Agent ID $AGENT_ID byl smazán." | sudo tee -a "$LOG_FILE"
+        AGENT_NAME=$(curl -u :$PAT_TOKEN -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION" | jq -r '.name')
+        if [[ "$AGENT_NAME" == *"${VM_NAME}-agent"* ]]; then
+            echo "Mazání agenta '$AGENT_NAME' (ID: $AGENT_ID)..."
+            curl -u :$PAT_TOKEN -X DELETE -s "$DEVOPS_URL/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
+            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) byl smazán."
+        else
+            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) přeskočen (neodpovídá vzoru '${VM_NAME}-agent')."
+        fi
     done
 else
-    echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat." | sudo tee -a "$LOG_FILE"
+    echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat."
 fi
 
 
