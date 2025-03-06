@@ -34,6 +34,10 @@ echo "$(date) - Agent úspěšně stažen: $(ls -l /tmp/agent.tar.gz)" | sudo te
 # Zajistit, že soubor je čitelný
 sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 
+# Čištění předchozí konfigurace
+sudo rm -rf /etc/systemd/system/vsts.agent.vzp* 2>&1 | sudo tee -a "$LOG_FILE"
+sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
+
 # Instalace a konfigurace více agentů
 for i in $(seq 1 $AGENT_COUNT); do
   AGENT_NAME="${VM_NAME}-agent-0${i}"
