@@ -19,9 +19,10 @@ else
   echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
 
-# Instalace závislostí pro RHEL 9 (nechávám zakomentované, pokud je potřeba, odkomentujte)
+# Instalace závislostí pro RHEL 9/Rocky (nechávám zakomentované, pokud je potřeba, odkomentujte)
 #sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
 #sudo dnf install -y curl unzip libicu 2>&1 | sudo tee -a "$LOG_FILE"
+sudo dnf install -y jq
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
