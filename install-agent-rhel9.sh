@@ -21,7 +21,7 @@ fi
 
 # Instalace závislostí pro RHEL 9/Rocky (nechávám zakomentované, pokud je potřeba, odkomentujte)
 #sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
-sudo dnf install -y libicu jq 2>&1 | sudo tee -a "$LOG_FILE"
+#sudo dnf install -y libicu jq 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
