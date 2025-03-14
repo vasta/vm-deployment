@@ -9,6 +9,9 @@ BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
 LOG_FILE="/var/log/install-agents.log"
 API_VERSION="7.1"
 
+# Waiting for cloud-init to be done
+sudo cloud-init status --wait
+
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
 # Vytvoření uživatele azagent, pokud ještě neexistuje
