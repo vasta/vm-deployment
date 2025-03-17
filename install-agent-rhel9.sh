@@ -10,7 +10,8 @@ LOG_FILE="/var/log/install-agents.log"
 API_VERSION="7.1"
 
 # Waiting for cloud-init to be done
-sudo cloud-init status --wait
+echo "$(date) - Čekám na dokončení cloud=init skriptu..." | sudo tee -a "$LOG_FILE"
+sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
