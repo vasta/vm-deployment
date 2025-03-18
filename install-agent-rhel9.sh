@@ -127,3 +127,6 @@ done
 # Úklid
 sudo rm /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 echo "$(date) - Script completed" | sudo tee -a "$LOG_FILE"
+
+# Závěrečný update
+sudo dnf update -y
