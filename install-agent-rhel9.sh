@@ -10,34 +10,34 @@ LOG_FILE="/var/log/install-agents.log"
 API_VERSION="7.1"
 
 # Waiting for cloud-init to be done
-echo "$(date) - Čekám na dokončení cloud=init skriptu..." | sudo tee -a "$LOG_FILE"
-sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
+#echo "$(date) - Čekám na dokončení cloud=init skriptu..." | sudo tee -a "$LOG_FILE"
+#sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
-packages=("jq" "git" "powershell" "azure-cli" "dotnet-sdk-8.0" "postgresql" "aadsshlogin-selinux" "aadsshlogin")
-# Funkce pro kontrolu a instalaci balíčku
-check_and_install() {
-    local package=$1
-    # Kontrola, zda je balíček nainstalován
-    if rpm -q "$package" > /dev/null 2>&1; then
-        echo "$package je již nainstalován" | sudo tee -a "$LOG_FILE"
-    else
-        echo "$package není nainstalován, pokusím se o instalaci..." | sudo tee -a "$LOG_FILE"
-        sudo dnf install -y "$package"        
-        # Kontrola po instalaci
-        if rpm -q "$package" > /dev/null 2>&1; then
-            echo "$package byl úspěšně nainstalován" | sudo tee -a "$LOG_FILE"
-        else
-            echo "Chyba: $package se nepodařilo nainstalovat" | sudo tee -a "$LOG_FILE"
-            exit 1
-        fi
-    fi
-}
-# Spuštění kontroly pro každý balíček
-for pkg in "${packages[@]}"; do
-    check_and_install "$pkg"
-done
+#packages=("jq" "git" "powershell" "azure-cli" "dotnet-sdk-8.0" "postgresql" "aadsshlogin-selinux" "aadsshlogin")
+# # Funkce pro kontrolu a instalaci balíčku
+# check_and_install() {
+#     local package=$1
+#     # Kontrola, zda je balíček nainstalován
+#     if rpm -q "$package" > /dev/null 2>&1; then
+#         echo "$package je již nainstalován" | sudo tee -a "$LOG_FILE"
+#     else
+#         echo "$package není nainstalován, pokusím se o instalaci..." | sudo tee -a "$LOG_FILE"
+#         sudo dnf install -y "$package"        
+#         # Kontrola po instalaci
+#         if rpm -q "$package" > /dev/null 2>&1; then
+#             echo "$package byl úspěšně nainstalován" | sudo tee -a "$LOG_FILE"
+#         else
+#             echo "Chyba: $package se nepodařilo nainstalovat" | sudo tee -a "$LOG_FILE"
+#             exit 1
+#         fi
+#     fi
+# }
+# # Spuštění kontroly pro každý balíček
+# for pkg in "${packages[@]}"; do
+#     check_and_install "$pkg"
+# done
 
 
 
