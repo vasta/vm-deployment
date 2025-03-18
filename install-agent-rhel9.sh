@@ -48,22 +48,24 @@ sudo rm -rf ${BASE_DIR}/ 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Získání POOL_ID podle názvu poolu a všech agentů v tomto poolu
 POOL_ID=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools?api-version=$API_VERSION" | jq -r ".value[] | select(.name==\"$AGENT_POOL\") | .id")
+echo "$(date) - Hledany POOL ID je: $POOL_ID" | sudo tee -a "$LOG_FILE"
 AGENTS=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents?api-version=$API_VERSION" | jq -r '.value[].id')
+echo "$(date) - Agenti: $AGENTS" | sudo tee -a "$LOG_FILE"
 # Mazání všech agentů v daném poolu pro dané VM
 if [[ -n "$AGENTS" ]]; then
-    echo "Mažu agenty v poolu '$AGENT_POOL', kteří obsahují '${VM_NAME}-agent' v názvu..."
+    echo "Mažu agenty v poolu '$AGENT_POOL', kteří obsahují '${VM_NAME}-agent' v názvu..." | sudo tee -a "$LOG_FILE"
     for AGENT_ID in $AGENTS; do
         AGENT_NAME=$(curl -u :$PAT_TOKEN -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION" | jq -r '.name')
         if [[ "$AGENT_NAME" == *"${VM_NAME}-agent"* ]]; then
-            echo "Mazání agenta '$AGENT_NAME' (ID: $AGENT_ID)..."
+            echo "Mazání agenta '$AGENT_NAME' (ID: $AGENT_ID)..." | sudo tee -a "$LOG_FILE"
             curl -u :$PAT_TOKEN -X DELETE -s "https://dev.azure.com/$DEVOPS_ORG/_apis/distributedtask/pools/$POOL_ID/agents/$AGENT_ID?api-version=$API_VERSION"
-            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) byl smazán."
+            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) byl smazán." | sudo tee -a "$LOG_FILE"
         else
-            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) přeskočen (neodpovídá vzoru '${VM_NAME}-agent')."
+            echo "Agent '$AGENT_NAME' (ID: $AGENT_ID) přeskočen (neodpovídá vzoru '${VM_NAME}-agent')." | sudo tee -a "$LOG_FILE"
         fi
     done
 else
-    echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat."
+    echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat." | sudo tee -a "$LOG_FILE"
 fi
 
 
