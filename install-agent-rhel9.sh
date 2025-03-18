@@ -15,6 +15,32 @@ sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
+packages=("jq" "git" "powershell" "azure-cli" "dotnet-sdk-8.0" "postgresql" "aadsshlogin-selinux" "aadsshlogin")
+# Funkce pro kontrolu a instalaci balíčku
+check_and_install() {
+    local package=$1
+    # Kontrola, zda je balíček nainstalován
+    if rpm -q "$package" > /dev/null 2>&1; then
+        echo "$package je již nainstalován" | sudo tee -a "$LOG_FILE"
+    else
+        echo "$package není nainstalován, pokusím se o instalaci..." | sudo tee -a "$LOG_FILE"
+        sudo dnf install -y "$package"        
+        # Kontrola po instalaci
+        if rpm -q "$package" > /dev/null 2>&1; then
+            echo "$package byl úspěšně nainstalován" | sudo tee -a "$LOG_FILE"
+        else
+            echo "Chyba: $package se nepodařilo nainstalovat" | sudo tee -a "$LOG_FILE"
+            exit 1
+        fi
+    fi
+}
+# Spuštění kontroly pro každý balíček
+for pkg in "${packages[@]}"; do
+    check_and_install "$pkg"
+done
+
+
+
 # Vytvoření uživatele azagent, pokud ještě neexistuje
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
   sudo useradd -m -s /bin/bash "$AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
