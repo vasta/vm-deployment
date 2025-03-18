@@ -37,7 +37,7 @@ fi
 echo "$(date) - Agent úspěšně stažen: $(ls -l /tmp/agent.tar.gz)" | sudo tee -a "$LOG_FILE"
 
 # Zajistit, že soubor je čitelný
-#sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
+sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 
 
 
@@ -129,4 +129,4 @@ sudo rm /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 echo "$(date) - Script completed" | sudo tee -a "$LOG_FILE"
 
 # Závěrečný update
-sudo dnf update -y
+# sudo dnf update -y
