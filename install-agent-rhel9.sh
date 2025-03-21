@@ -9,6 +9,9 @@ BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
 LOG_FILE="/var/log/install-agents.log"
 API_VERSION="7.1"
 
+echo "vypis promennych pro kontrolu:" | sudo tee -a "$LOG_FILE"
+echo $DEVOPS_ORG $PAT_TOKEN $VM_NAME $AGENT_COUNT $AGENT_POOL | sudo tee -a "$LOG_FILE"
+
 # Waiting for cloud-init to be done
 echo "$(date) - Čekám na dokončení cloud=init skriptu..." | sudo tee -a "$LOG_FILE"
 sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
@@ -40,7 +43,6 @@ echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 # done
 
 
-
 # Vytvoření uživatele azagent, pokud ještě neexistuje
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
   sudo useradd -m -s /bin/bash "$AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
@@ -48,10 +50,6 @@ if ! id "$AGENT_USER" >/dev/null 2>&1; then
 else
   echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
-
-# Instalace závislostí pro RHEL 9/Rocky (nechávám zakomentované, pokud je potřeba, odkomentujte)
-#sudo dnf update -y 2>&1 | sudo tee -a "$LOG_FILE"
-#sudo dnf install -y libicu jq 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
@@ -64,8 +62,6 @@ echo "$(date) - Agent úspěšně stažen: $(ls -l /tmp/agent.tar.gz)" | sudo te
 
 # Zajistit, že soubor je čitelný
 sudo chmod 644 /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
-
-
 
 
 # Čištění předchozí konfigurace
@@ -93,8 +89,6 @@ if [[ -n "$AGENTS" ]]; then
 else
     echo "Pool '$AGENT_POOL' neobsahuje žádné agenty. Není co mazat." | sudo tee -a "$LOG_FILE"
 fi
-
-
 
 
 
