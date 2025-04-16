@@ -9,38 +9,12 @@ BASE_DIR="/opt/devops-agents"  # Pevně daná cesta pro instalaci agentů
 LOG_FILE="/var/log/install-agents.log"
 API_VERSION="7.1"
 
-echo "vypis promennych pro kontrolu:" | sudo tee -a "$LOG_FILE"
-echo $DEVOPS_ORG $PAT_TOKEN $VM_NAME $AGENT_COUNT $AGENT_POOL | sudo tee -a "$LOG_FILE"
 
 # Waiting for cloud-init to be done
 echo "$(date) - Čekám na dokončení cloud=init skriptu..." | sudo tee -a "$LOG_FILE"
 sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
-
-#packages=("jq" "git" "powershell" "azure-cli" "dotnet-sdk-8.0" "postgresql" "aadsshlogin-selinux" "aadsshlogin")
-# # Funkce pro kontrolu a instalaci balíčku
-# check_and_install() {
-#     local package=$1
-#     # Kontrola, zda je balíček nainstalován
-#     if rpm -q "$package" > /dev/null 2>&1; then
-#         echo "$package je již nainstalován" | sudo tee -a "$LOG_FILE"
-#     else
-#         echo "$package není nainstalován, pokusím se o instalaci..." | sudo tee -a "$LOG_FILE"
-#         sudo dnf install -y "$package"        
-#         # Kontrola po instalaci
-#         if rpm -q "$package" > /dev/null 2>&1; then
-#             echo "$package byl úspěšně nainstalován" | sudo tee -a "$LOG_FILE"
-#         else
-#             echo "Chyba: $package se nepodařilo nainstalovat" | sudo tee -a "$LOG_FILE"
-#             exit 1
-#         fi
-#     fi
-# }
-# # Spuštění kontroly pro každý balíček
-# for pkg in "${packages[@]}"; do
-#     check_and_install "$pkg"
-# done
 
 
 # Vytvoření uživatele azagent, pokud ještě neexistuje
@@ -50,6 +24,9 @@ if ! id "$AGENT_USER" >/dev/null 2>&1; then
 else
   echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
+
+# Přidání /usr/local/bin do PATH pro uživatele azagent
+sudo bash -c "echo 'export PATH=$PATH:/usr/local/bin' >> /home/azagent/.bash_profile" 2>&1 | sudo tee -a "$LOG_FILE"
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
@@ -143,6 +120,7 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Instalace a spuštění služby pod uživatelem azagent
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh install $AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo bash -c "cd $AGENT_DIR && ./env.sh" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
 done
 
