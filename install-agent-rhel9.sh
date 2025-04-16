@@ -120,7 +120,9 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Instalace a spuštění služby pod uživatelem azagent
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh install $AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./env.sh" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo bash -c "cd $AGENT_DIR && ./svc.sh stop" 2>&1 | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
 done
 
