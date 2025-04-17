@@ -21,12 +21,13 @@ echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
   sudo useradd -m -s /bin/bash "$AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
   echo "$(date) - Uživatel $AGENT_USER vytvořen" | sudo tee -a "$LOG_FILE"
+  # Přidání /usr/local/bin do PATH pro uživatele azagent
+  sudo -iu $AGENT_USER bash -c "echo 'export PATH=$PATH:/usr/local/bin' >> /home/$AGENT_USER/.bash_profile" 2>&1 | sudo tee -a "$LOG_FILE"
 else
   echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
 
-# Přidání /usr/local/bin do PATH pro uživatele azagent
-sudo bash -c "echo 'export PATH=$PATH:/usr/local/bin' >> /home/azagent/.bash_profile" 2>&1 | sudo tee -a "$LOG_FILE"
+
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
@@ -120,9 +121,7 @@ for i in $(seq 1 $AGENT_COUNT); do
   # Instalace a spuštění služby pod uživatelem azagent
   echo "$(date) - Instalace a spuštění agenta $AGENT_NAME" | sudo tee -a "$LOG_FILE"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh install $AGENT_USER" 2>&1 | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./env.sh" 2>&1 | sudo tee -a "$LOG_FILE"
-  sudo bash -c "cd $AGENT_DIR && ./svc.sh stop" 2>&1 | sudo tee -a "$LOG_FILE"
+  sudo -iu $AGENT_USER bash -c "echo $PATH >> $AGENT_DIR/.path"
   sudo bash -c "cd $AGENT_DIR && ./svc.sh start" 2>&1 | sudo tee -a "$LOG_FILE"
 done
 
