@@ -31,7 +31,7 @@ fi
 
 # Stažení agenta do dočasného adresáře
 echo "$(date) - Stahování agenta" | sudo tee -a "$LOG_FILE"
-curl -L https://vstsagentpackage.azureedge.net/agent/4.251.0/vsts-agent-linux-x64-4.251.0.tar.gz -o /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
+curl -L https://download.agent.dev.azure.com/agent/4.258.1/vsts-agent-linux-x64-4.258.1.tar.gz -o /tmp/agent.tar.gz 2>&1 | sudo tee -a "$LOG_FILE"
 if [ $? -ne 0 ] || [ ! -f "/tmp/agent.tar.gz" ]; then
   echo "$(date) - Chyba: Stažení agenta selhalo nebo soubor nenalezen" | sudo tee -a "$LOG_FILE"
   exit 1
