@@ -16,6 +16,13 @@ sudo cloud-init status --wait 2>&1 | sudo tee -a "$LOG_FILE"
 
 echo "$(date) - Starting script" | sudo tee -a "$LOG_FILE"
 
+# Install additional Poweshell packages
+sudo pwsh -Command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted"
+sudo pwsh -Command "Install-Module -Name Az -Scope AllUsers -Force -AllowClobber"
+sudo pwsh -Command "Install-Module -Name Microsoft.Graph -Scope AllUsers -Force -AllowClobber"
+sudo pwsh -Command "Install-Module -Name Pester -Scope AllUsers -Force -AllowClobber"
+sudo pwsh -Command "Install-Module -Name PSScriptAnalyzer -Scope AllUsers -Force -AllowClobber"
+
 
 # Vytvoření uživatele azagent, pokud ještě neexistuje
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
