@@ -28,6 +28,8 @@ else
 fi
 
 # Set Java 21 as default for agent
+JAVA_BIN=$(readlink -f $(which java))
+JAVA_HOME=$(dirname $(dirname $JAVA_BIN))
 if ! sudo -iu $AGENT_USER bash -c "grep -Fx 'export JAVA_HOME=$JAVA_HOME' ~/.bashrc"; then
   sudo -iu $AGENT_USER bash -c "echo 'export JAVA_HOME=$JAVA_HOME' >> ~/.bashrc"
 fi
