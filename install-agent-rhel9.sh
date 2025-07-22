@@ -27,6 +27,12 @@ else
   echo "$(date) - Uživatel $AGENT_USER již existuje" | sudo tee -a "$LOG_FILE"
 fi
 
+# Set Java 21 as default for agent
+if ! sudo -iu $AGENT_USER bash -c "grep -Fx 'export JAVA_HOME=$JAVA_HOME' ~/.bashrc"; then
+  sudo -iu $AGENT_USER bash -c "echo 'export JAVA_HOME=$JAVA_HOME' >> ~/.bashrc"
+fi
+sudo -iu $AGENT_USER bash -c 'source ~/.bashrc'
+
 
 
 # Stažení agenta do dočasného adresáře
